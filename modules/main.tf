@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "env" {
 
 resource "azurerm_virtual_network" "env" {
   name                = "${var.prefix}-vnet"
-  address_space       = ["10.0.0.0/16"]
+  address_space       = var.default_vnet_address_space
   location            = azurerm_resource_group.env.location
   resource_group_name = azurerm_resource_group.env.name
 }
@@ -27,7 +27,7 @@ resource "azurerm_subnet" "env" {
   name                 = "${var.prefix}-subnet"
   resource_group_name  = azurerm_resource_group.env.name
   virtual_network_name = azurerm_virtual_network.env.name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = var.default_subnet_address_space
 }
 
 resource "azurerm_network_security_group" "env" {
@@ -59,6 +59,25 @@ resource "azurerm_network_interface" "env" {
   }
   resource_group_name = azurerm_resource_group.env.name
   location            = azurerm_resource_group.env.location
+}
+
+resource "azurerm_network_interface_security_group_association" "env" {
+  network_interface_id      = azurerm_network_interface.env.id
+  network_security_group_id = azurerm_network_security_group.env.id
+}
+
+resource "azurerm_network_security_rule" "env" {
+  resource_group_name         = azurerm_resource_group.env.name
+  network_security_group_name = azurerm_network_security_group.env.name
+  name                        = "Allow_SSH"
+  priority                    = 1001
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "22"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
 }
 
 resource "azurerm_virtual_machine" "env" {
