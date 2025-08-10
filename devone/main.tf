@@ -1,4 +1,4 @@
-module "networking" {
+module "devone" {
   source   = "../modules"
   prefix   = var.prefix
   location = var.location
